@@ -4,10 +4,12 @@
 #include "config.h"
 #include "bitmap.h"
 #include <fuse.h>
+#include <stdlib.h>
 
-#define INODE_SIZE 256
-#define DIRECT_DATABLOCK_CNT ((INODE_SIZE - sizeof(struct stat) - sizeof(struct inode *)) / sizeof(void *) - 1) // if INODE_SIZE is 256, it should be 12
+#define INODE_SIZE 512
+#define DIRECT_DATABLOCK_CNT ((INODE_SIZE - MAX_FILENAME - sizeof(struct stat) - 3 * sizeof(struct inode *)) / sizeof(void *)) // if INODE_SIZE is 512 and MAX_FILENAME is 256, it should be 11
 
+/*
 struct inode 
 {
     struct stat st;
@@ -21,11 +23,65 @@ struct directory
     char filename[MAX_FILENAME + 1];
     struct inode *entrance;
 };
+*/
+
+/*
+struct inode_inner
+{
+	struct stat st; //sizeof(struct stat) is 144 bytes
+	struct inode *parent;
+	struct inode *next;
+};
+
+struct file_entry
+{
+	char name[MAX_FILENAME];
+	struct inode *node;
+	struct file_entry *next;
+};
+
+#define DIRECT_DATABLOCK_CNT ((INODE_SIZE - sizeof(struct inode_inner)) / sizeof(void *) - 1)
+struct inode
+{
+	struct stat st; //sizeof(struct stat) is 144 bytes
+	struct inode *parent;
+	struct inode *next;
+
+	union
+	{
+		struct
+		{
+			void *direct_datablock[DIRECT_DATABLOCK_CNT];
+			void *triple_indirect_datablock;
+		};
+
+		struct
+		{
+			struct file_entry *child;
+		};
+	};
+}
+*/
+
+struct inode
+{
+    struct stat st;     //sizeof(struct stat) is 144 bytes
+    struct inode *parent;
+    void *direct_datablock[DIRECT_DATABLOCK_CNT];
+    char name[MAX_FILENAME];
+
+	union
+    {
+		void *triple_indirect_datablock;
+		struct inode *child;
+	};
+    struct inode *next;
+};
 
 struct bitmap inode_bitmap;
 struct bitmap datablock_bitmap;
-struct inode *inodes[BLK_CNT];
-void *datablocks[BLK_CNT];
+struct inode *inodes;
+void *datablocks;
 
 struct inode *root;
 

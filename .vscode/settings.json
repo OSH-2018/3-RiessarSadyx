@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "mfs.h": "c",
+        "mman.h": "c",
+        "string.h": "c",
+        "bitmap.h": "c",
+        "fuse.h": "c",
+        "fuse_common.h": "c"
+    }
+}

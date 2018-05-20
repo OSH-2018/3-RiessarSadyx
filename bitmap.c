@@ -3,7 +3,7 @@
 #include <string.h>
 #include "bitmap.h"
 
-void new_bitmap(struct bitmap *b, size_t size)
+void new_bitmap(struct bitmap *b, mfs_size_t size)
 {
     b->size = size;
     b->bits = (unsigned char *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -19,7 +19,7 @@ void free_bitmap(struct bitmap *b)
     return;
 }
 
-void bitmap_set(struct bitmap *b, size_t index, unsigned char value)
+void bitmap_set(struct bitmap *b, mfs_size_t index, unsigned char value)
 {
     if(index >= 0 && index < b->size)
     {
@@ -28,7 +28,7 @@ void bitmap_set(struct bitmap *b, size_t index, unsigned char value)
     return;
 }
 
-unsigned char bitmap_get(struct bitmap *b, size_t index)
+unsigned char bitmap_get(struct bitmap *b, mfs_size_t index)
 {
     if(index >= 0 && index < b->size)
     {
@@ -37,12 +37,12 @@ unsigned char bitmap_get(struct bitmap *b, size_t index)
     else return -1;
 }
 
-size_t bitmap_acquire(struct bitmap *b)
+mfs_size_t bitmap_acquire(struct bitmap *b)
 {
-    for(size_t i = b->prev_pos; i < b->size; i++)
+    for(mfs_size_t i = b->prev_pos; i < b->size; i++)
         if(*(b->bits + i) == (unsigned char)0)
             return b->prev_pos = i;
-    for(size_t i = 0; i < b->prev_pos; i++)
+    for(mfs_size_t i = 0; i < b->prev_pos; i++)
         if(*(b->bits + i) == (unsigned char)0)
             return b->prev_pos = i;
     return -1;
